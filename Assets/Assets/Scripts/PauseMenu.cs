@@ -16,7 +16,6 @@ public class PauseMenu : MonoBehaviour
         if (pauseMenuUI != null)
             pauseMenuUI.SetActive(false);
 
-        // Ensure normal speed when starting the scene
         Time.timeScale = 1f;
     }
 
