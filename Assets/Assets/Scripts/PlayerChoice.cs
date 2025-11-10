@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PlayerChoice : MonoBehaviour
 {
-    public string choiceName; // Rock, Paper, or Scissors
+    public string choiceName; 
 
     public void OnClickChoice()
     {
