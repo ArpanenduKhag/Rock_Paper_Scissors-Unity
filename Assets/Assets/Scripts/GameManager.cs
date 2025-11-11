@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class GameManager : MonoBehaviour
     [Header("UI References")]
     public TMP_Text playerScoreText;
     public TMP_Text botScoreText;
-
+    public TMP_Text timerText; 
     [Header("Result Texts")]
     public GameObject youWinText;
     public GameObject youLoseText;
@@ -25,19 +26,35 @@ public class GameManager : MonoBehaviour
     public Sprite paperSprite;
     public Sprite scissorsSprite;
 
+    [Header("Buttons")]
+    public Button rockButton;
+    public Button paperButton;
+    public Button scissorsButton;
+
     private int playerScore = 0;
     private int botScore = 0;
+    private int currentRound = 1;
+    private const int totalRounds = 5;
+
+    private bool canChoose = false;
+    private string playerChoice = "";
+    private string botChoice = "";
+
+    private readonly string[] choices = { "Rock", "Paper", "Scissors" };
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
-        // Always reset time scale when scene starts (after pause)
         Time.timeScale = 1f;
-
         HideAllResults();
         ClearChoiceImages();
+    }
+
+    private void Start()
+    {
+        StartCoroutine(GameLoop());
     }
 
     private void HideAllResults()
@@ -55,92 +72,175 @@ public class GameManager : MonoBehaviour
         botChoiceImage.enabled = false;
     }
 
-    public void PlayerChoice(string playerChoice)
+    // --------------------------- GAME LOOP ---------------------------
+    private IEnumerator GameLoop()
     {
-        string[] choices = { "Rock", "Paper", "Scissors" };
-        string botChoice = choices[Random.Range(0, choices.Length)];
+        while (currentRound <= totalRounds)
+        {
+            Debug.Log($"--- Round {currentRound} ---");
+            HideAllResults();
+            ClearChoiceImages();
 
-        // Set images for both
-        SetChoiceImage(playerChoiceImage, playerChoice);
-        SetChoiceImage(botChoiceImage, botChoice);
+            playerChoice = "";
+            botChoice = "";
 
-        string result = DetermineWinner(playerChoice, botChoice);
-        ShowResult(result);
+            canChoose = true;
+            EnableChoiceButtons(true);
+
+            // Show timer for each new round
+            timerText.gameObject.SetActive(true);
+            float timer = 3f;
+
+            while (timer > 0f)
+            {
+                timerText.text = $"Time: {timer:F0}";
+                yield return new WaitForSeconds(1f);
+                timer -= 1f;
+            }
+
+            // Hide timer after countdown for this round
+            timerText.gameObject.SetActive(false);
+
+            canChoose = false;
+            EnableChoiceButtons(false);
+
+            // Bot logic
+            if (string.IsNullOrEmpty(playerChoice))
+            {
+                botChoice = choices[Random.Range(0, choices.Length)];
+                botScore++;
+                SetChoiceImage(botChoiceImage, botChoice);
+            }
+            else
+            {
+                botChoice = choices[Random.Range(0, choices.Length)];
+                SetChoiceImage(botChoiceImage, botChoice);
+                DetermineWinner();
+            }
+
+            UpdateScoreUI();
+            currentRound++;
+
+            yield return new WaitForSeconds(2f);
+        }
+
+        ShowFinalResult();
     }
 
+    // --------------------------- PLAYER INPUT ---------------------------
+    public void PlayerChoice(string choice)
+    {
+        if (!canChoose) return;
+
+        playerChoice = choice;
+        SetChoiceImage(playerChoiceImage, choice);
+
+        canChoose = false;
+        EnableChoiceButtons(false);
+    }
+
+    // --------------------------- CHOICE HANDLING ---------------------------
     private void SetChoiceImage(Image img, string choice)
     {
         switch (choice)
         {
-            case "Rock":
-                img.sprite = rockSprite;
-                break;
-            case "Paper":
-                img.sprite = paperSprite;
-                break;
-            case "Scissors":
-                img.sprite = scissorsSprite;
-                break;
+            case "Rock": img.sprite = rockSprite; break;
+            case "Paper": img.sprite = paperSprite; break;
+            case "Scissors": img.sprite = scissorsSprite; break;
         }
 
         img.enabled = true;
-        img.color = Color.white; // ensure it's visible
-
-        Debug.Log($"Set {choice} sprite on {img.name}");
+        img.color = Color.white;
     }
 
-    private string DetermineWinner(string player, string bot)
+    private void DetermineWinner()
     {
-        if (player == bot)
-            return "Tie";
+        string result;
 
-        if ((player == "Rock" && bot == "Scissors") ||
-            (player == "Paper" && bot == "Rock") ||
-            (player == "Scissors" && bot == "Paper"))
+        if (playerChoice == botChoice)
+        {
+            result = "Tie";
+        }
+        else if (
+            (playerChoice == "Rock" && botChoice == "Scissors") ||
+            (playerChoice == "Paper" && botChoice == "Rock") ||
+            (playerChoice == "Scissors" && botChoice == "Paper")
+        )
         {
             playerScore++;
-            return "Win";
+            result = "Win";
+        }
+        else
+        {
+            botScore++;
+            result = "Lose";
         }
 
-        botScore++;
-        return "Lose";
+        ShowRoundResult(result);
     }
 
-    private void ShowResult(string result)
+    // --------------------------- UI HANDLING ---------------------------
+    private void ShowRoundResult(string result)
     {
         HideAllResults();
 
         switch (result)
         {
-            case "Win":
-                youWinText.SetActive(true);
-                break;
-            case "Lose":
-                youLoseText.SetActive(true);
-                break;
-            case "Tie":
-                tieText.SetActive(true);
-                break;
+            case "Win": youWinText.SetActive(true); break;
+            case "Lose": youLoseText.SetActive(true); break;
+            case "Tie": tieText.SetActive(true); break;
         }
-
-        playerScoreText.text = "Player: " + playerScore;
-        botScoreText.text = "Bot: " + botScore;
     }
 
+    private void UpdateScoreUI()
+    {
+        playerScoreText.text = $"Player: {playerScore}";
+        botScoreText.text = $"Bot: {botScore}";
+    }
+
+    private void ShowFinalResult()
+    {
+        HideAllResults();
+        EnableChoiceButtons(false);
+        ClearChoiceImages();
+
+        timerText.gameObject.SetActive(true); // Show final result here
+        timerText.fontSize = 36;
+
+        if (playerScore > botScore)
+        {
+            youWinText.SetActive(true);
+            timerText.text = "You Won the Game!";
+        }
+        else if (botScore > playerScore)
+        {
+            youLoseText.SetActive(true);
+            timerText.text = "Bot Won the Game!";
+        }
+        else
+        {
+            tieText.SetActive(true);
+            timerText.text = "It's a Draw!";
+        }
+    }
+
+    private void EnableChoiceButtons(bool enable)
+    {
+        rockButton.interactable = enable;
+        paperButton.interactable = enable;
+        scissorsButton.interactable = enable;
+    }
+
+    // --------------------------- SCENE CONTROL ---------------------------
     public void RestartGame()
     {
-        Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
-    // --- NEW ---
-    // Optional: Call this from a Pause Button if you add one
     public void PauseGame()
     {
         PauseMenu pauseMenu = FindObjectOfType<PauseMenu>();
         if (pauseMenu != null)
-        {
             pauseMenu.PauseGame();
-        }
     }
 }
