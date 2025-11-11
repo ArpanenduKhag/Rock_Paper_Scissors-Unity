@@ -72,7 +72,6 @@ public class GameManager : MonoBehaviour
         botChoiceImage.enabled = false;
     }
 
-    // --------------------------- GAME LOOP ---------------------------
     private IEnumerator GameLoop()
     {
         while (currentRound <= totalRounds)
@@ -127,7 +126,6 @@ public class GameManager : MonoBehaviour
         ShowFinalResult();
     }
 
-    // --------------------------- PLAYER INPUT ---------------------------
     public void PlayerChoice(string choice)
     {
         if (!canChoose) return;
@@ -139,7 +137,6 @@ public class GameManager : MonoBehaviour
         EnableChoiceButtons(false);
     }
 
-    // --------------------------- CHOICE HANDLING ---------------------------
     private void SetChoiceImage(Image img, string choice)
     {
         switch (choice)
@@ -179,7 +176,6 @@ public class GameManager : MonoBehaviour
         ShowRoundResult(result);
     }
 
-    // --------------------------- UI HANDLING ---------------------------
     private void ShowRoundResult(string result)
     {
         HideAllResults();
@@ -204,7 +200,7 @@ public class GameManager : MonoBehaviour
         EnableChoiceButtons(false);
         ClearChoiceImages();
 
-        timerText.gameObject.SetActive(true); // Show final result here
+        timerText.gameObject.SetActive(true); // Show final result text
         timerText.fontSize = 36;
 
         if (playerScore > botScore)
@@ -222,7 +218,12 @@ public class GameManager : MonoBehaviour
             tieText.SetActive(true);
             timerText.text = "It's a Draw!";
         }
+
+        PauseMenu pauseMenu = FindObjectOfType<PauseMenu>();
+        if (pauseMenu != null)
+            pauseMenu.ShowGameOverMenu();
     }
+
 
     private void EnableChoiceButtons(bool enable)
     {
@@ -231,7 +232,6 @@ public class GameManager : MonoBehaviour
         scissorsButton.interactable = enable;
     }
 
-    // --------------------------- SCENE CONTROL ---------------------------
     public void RestartGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);

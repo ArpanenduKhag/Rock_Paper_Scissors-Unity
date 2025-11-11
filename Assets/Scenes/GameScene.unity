@@ -2064,6 +2064,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pauseMenuUI: {fileID: 2025164826}
+  resumeButton: {fileID: 908642165}
 --- !u!1 &1114959887
 GameObject:
   m_ObjectHideFlags: 0
@@ -2442,6 +2443,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerScoreText: {fileID: 1312971049}
   botScoreText: {fileID: 312237903}
+  timerText: {fileID: 137957200}
   youWinText: {fileID: 364232819}
   youLoseText: {fileID: 2025460387}
   tieText: {fileID: 1473845584}
@@ -2450,6 +2452,9 @@ MonoBehaviour:
   rockSprite: {fileID: 21300000, guid: c430468ed18845a4390266659ac0ab1f, type: 2}
   paperSprite: {fileID: 21300000, guid: da40434820e348d4e9d29e605f9889a7, type: 2}
   scissorsSprite: {fileID: 21300000, guid: d4042401247a7c141b10d96c90f4e578, type: 2}
+  rockButton: {fileID: 1784976031}
+  paperButton: {fileID: 842148908}
+  scissorsButton: {fileID: 584768533}
 --- !u!4 &1266396224
 Transform:
   m_ObjectHideFlags: 0
